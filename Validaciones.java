@@ -1,3 +1,5 @@
+import java.util.Calendar;
+
 /**
  * Clase con métodos que permiten validar datos básicos de un cliente, como pueden ser:
  * - Nombre y sus apellidos
@@ -244,11 +246,13 @@ public class Validaciones {
 		}
 		//Rango de años permitidos
 		if(!validarSintaxis){
-			if(anyo<1950 ||anyo>2010){
+			// Año actual
+			int anyoActual = Calendar.getInstance().get(Calendar.YEAR);
+			if(anyo<1950 ||anyo>anyoActual){
 				System.out.println("No se acepta ese año");
 				return false;
 			}
-			if(2023-anyo < 18){
+			if(anyoActual-anyo < 18){
 				System.out.println("Eres menor de edad");
 				return false;
 			}
