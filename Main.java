@@ -100,10 +100,24 @@ public class Main {
 
 			if (opcionHabitacion.equals("1")) {
 				System.out.println("***********  RESERVAR HABITACIÓN  ***********");
+				boolean todoCorrecto = true;
 				do {
+					todoCorrecto = true;
 					System.out.println("¿Para cuántas personas se hace la reserva?");
 					personasReserva = sc.nextLine();
-				} while (!Validaciones.esUnNumero(personasReserva, false));
+					if(!Validaciones.esUnNumero(personasReserva, true)){
+						System.out.println("Introduce un número, por favor");
+						todoCorrecto = false;
+					}
+					else if(personasReserva.length() > 2){
+						System.out.println("No se permite ese número de personas, máximo 99 por reserva");
+						todoCorrecto = false;
+					}
+					else if(Integer.parseInt(personasReserva)<=0){
+						System.out.println("La reserva debe de hacerse para un número de personas mayor");
+						todoCorrecto=false;
+					}
+				} while (!todoCorrecto);
 				do {
 					System.out.println("¿Cuál es la fecha de entrada?");
 					fechaEntrada = sc.nextLine();
@@ -116,97 +130,115 @@ public class Main {
 				habitaciones.addAll(Habitacion.generarHabitacionesBase());
 				ArrayList<Habitacion> habitacionesRepetidas = new ArrayList<>();
 				HashMap<Integer, String> opcionesHabitacion = new HashMap<>();
-				for (Habitacion h : habitaciones) {
-					if (h.getMax_personas() == personasTotalReserva && h.comprobarDisponibilidadHabitacion(fechaEntrada + ":" + fechaSalida)) {
+				//nOpciones determina el número de habitaciones que se muestran,
+				//para saber si el usuario puede seleccionar alguna
+				boolean seguirBuscando = true;
+				int nOpciones = 0;
+				do{
+					nOpciones=0;
+					for (Habitacion h : habitaciones) {
+						if (h.getMax_personas() == personasTotalReserva && h.comprobarDisponibilidadHabitacion(fechaEntrada + ":" + fechaSalida)) {
+							String precios = "";
+							System.out.println("* Opcion " + (++opcionHabitaciones));
+							System.out.println("Habitación " + h.getNombre() + " para " + h.getMax_personas());
+							nOpciones++;
+							precios += h.getPrecio();
+							System.out.println("Precio final: " + precios);
+							opcionesHabitacion.put(opcionHabitaciones, "" + h.getId());
+						}
+					}
+					for (Habitacion h : habitaciones) {
 						String precios = "";
-						System.out.println("* Opcion " + (++opcionHabitaciones));
-						System.out.println("Habitación " + h.getNombre() + " para " + h.getMax_personas());
-						precios += h.getPrecio();
-						System.out.println("Precio final: " + precios);
-						opcionesHabitacion.put(opcionHabitaciones, "" + h.getId());
-					}
-				}
-				for (Habitacion h : habitaciones) {
-					String precios = "";
-					habitacionesRepetidas.add(h);
-					for (Habitacion h_ : habitaciones) {
-						boolean habitacionRepetida = false;
-						for (Habitacion hr : habitacionesRepetidas) {
-							if (h_.equals(hr)) habitacionRepetida = true;
-						}
-						if (!habitacionRepetida) {
-							if (h.getMax_personas() + h_.getMax_personas() == personasTotalReserva) {
-								System.out.println("* Opcion " + (++opcionHabitaciones));
-								System.out.println("Habitación " + h.getNombre() + " para " + h.getMax_personas());
-								System.out.println("Habitación " + h_.getNombre() + " para " + h_.getMax_personas());
-								precios += h.getPrecio() + "+" + h_.getPrecio();
-								System.out.println("Precio final: " + precios);
-								opcionesHabitacion.put(opcionHabitaciones, "" + h.getId() + "," + h_.getId());
+						habitacionesRepetidas.add(h);
+						for (Habitacion h_ : habitaciones) {
+							boolean habitacionRepetida = false;
+							for (Habitacion hr : habitacionesRepetidas) {
+								if (h_.equals(hr)) habitacionRepetida = true;
+							}
+							if (!habitacionRepetida) {
+								if (h.getMax_personas() + h_.getMax_personas() == personasTotalReserva) {
+									System.out.println("* Opcion " + (++opcionHabitaciones));
+									System.out.println("Habitación " + h.getNombre() + " para " + h.getMax_personas());
+									System.out.println("Habitación " + h_.getNombre() + " para " + h_.getMax_personas());
+									nOpciones++;
+									precios += h.getPrecio() + "+" + h_.getPrecio();
+									System.out.println("Precio final: " + precios);
+									opcionesHabitacion.put(opcionHabitaciones, "" + h.getId() + "," + h_.getId());
+								}
 							}
 						}
 					}
-				}
+					if(nOpciones==0){
+						System.out.println("No se han encontrado habitaciones disponibles para esos criterios");
+						System.out.println("¿Desea seguir intentando?");
+						seguirBuscando = sc.nextLine().equals("S") || sc.nextLine().equals("s");
+					}
+				}while(nOpciones==0 && seguirBuscando);
 				boolean habitacionCorrecta = false;
-				do {
-					System.out.println("¿Qué opción desea?");
-					opcionHabitacion = sc.nextLine();
-					if(Validaciones.esUnNumero(opcionHabitacion, false)){
-						for(int opcion_ : opcionesHabitacion.keySet()){
-							if(opcion_==Integer.parseInt(opcionHabitacion)){
-								System.out.println("Habitaciones a la espera del pago...");
-								habitacionCorrecta = true;
+				if(nOpciones>0){
+					do {
+						System.out.println("¿Qué opción desea?");
+						opcionHabitacion = sc.nextLine();
+						if(Validaciones.esUnNumero(opcionHabitacion, false)){
+							for(int opcion_ : opcionesHabitacion.keySet()){
+								if(opcion_==Integer.parseInt(opcionHabitacion)){
+									System.out.println("Habitaciones a la espera del pago...");
+									habitacionCorrecta = true;
+								}
+								else{
+									habitacionCorrecta = false;
+								}
 							}
-							else{
-								habitacionCorrecta = false;
-							}
+							opcionHabitacion = habitacionCorrecta ? opcionHabitacion : "ERROR";
 						}
-						opcionHabitacion = habitacionCorrecta ? opcionHabitacion : "ERROR";
-					}
-					else{
-						opcionHabitacion="ERROR";
-					}
-				}while(opcionHabitacion.equals("ERROR"));
-				String metodoPago = "";
-				boolean pagoRealizado = false;
-				System.out.println("Elige un método de pago\n" +
-						"1.Tarjeta de crédito\n" +
-						"2.Bizum");
-				metodoPago = sc.nextLine();
-				if(metodoPago.equals("1")){
-					String tarjetaCredito = "";
-					do{
-						System.out.println("Introduce el número de tarjeta de crédito");
-						tarjetaCredito = sc.nextLine();
-					}while(!Validaciones.validarTarjeta(tarjetaCredito));
-					String visa = "415006";
-					String americanExpress = "375699";
-					String masterCard = " 515878";
-					if(tarjetaCredito.substring(0, 6).equals(visa)){
-						System.out.println("Tienes una VISA");
-						pagoRealizado=true;
-					}
-					else if(tarjetaCredito.substring(0, 6).equals(americanExpress)){
-						System.out.println("Tienes una American Express");
-						pagoRealizado=true;
-					}
-					else if(tarjetaCredito.substring(0, 6).equals(masterCard)){
-						System.out.println("Tienes una MasterCard");
-						pagoRealizado=true;
-					}
-					else{
-						System.out.println("No se ha detectado el tipo de tu tarjeta de crédito");
-					}
+						else{
+							opcionHabitacion="ERROR";
+						}
+					}while(opcionHabitacion.equals("ERROR"));
 				}
-				else if(metodoPago.equals("2")){
-					String bizum = "";
-					System.out.println("Bizum");
-					System.out.println("Introduce tu número de teléfono");
-					bizum = sc.nextLine();
-					if(Validaciones.telefono(bizum)){
-						System.out.println("Pago realizado");
-						pagoRealizado=true;
-					}else{
-						System.out.println("Número inválida");
+				boolean pagoRealizado = false;
+				if(habitacionCorrecta){
+					String metodoPago = "";
+					System.out.println("Elige un método de pago\n" +
+							"1.Tarjeta de crédito\n" +
+							"2.Bizum");
+					metodoPago = sc.nextLine();
+					if(metodoPago.equals("1")){
+						String tarjetaCredito = "";
+						do{
+							System.out.println("Introduce el número de tarjeta de crédito");
+							tarjetaCredito = sc.nextLine();
+						}while(!Validaciones.validarTarjeta(tarjetaCredito));
+						String visa = "415006";
+						String americanExpress = "375699";
+						String masterCard = " 515878";
+						if(tarjetaCredito.substring(0, 6).equals(visa)){
+							System.out.println("Tienes una VISA");
+							pagoRealizado=true;
+						}
+						else if(tarjetaCredito.substring(0, 6).equals(americanExpress)){
+							System.out.println("Tienes una American Express");
+							pagoRealizado=true;
+						}
+						else if(tarjetaCredito.substring(0, 6).equals(masterCard)){
+							System.out.println("Tienes una MasterCard");
+							pagoRealizado=true;
+						}
+						else{
+							System.out.println("No se ha detectado el tipo de tu tarjeta de crédito");
+						}
+					}
+					else if(metodoPago.equals("2")){
+						String bizum = "";
+						System.out.println("Bizum");
+						System.out.println("Introduce tu número de teléfono");
+						bizum = sc.nextLine();
+						if(Validaciones.telefono(bizum)){
+							System.out.println("Pago realizado");
+							pagoRealizado=true;
+						}else{
+							System.out.println("Número inválida");
+						}
 					}
 				}
 				if(pagoRealizado){
