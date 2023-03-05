@@ -171,7 +171,9 @@ public class Main {
 					if(nOpciones==0){
 						System.out.println("No se han encontrado habitaciones disponibles para esos criterios");
 						System.out.println("¿Desea seguir intentando?");
+
 						seguirBuscando = sc.nextLine().equals("S") || sc.nextLine().equals("s");
+
 					}
 				}while(nOpciones==0 && seguirBuscando);
 				boolean habitacionCorrecta = false;
